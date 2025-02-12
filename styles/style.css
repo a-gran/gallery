@@ -1,0 +1,110 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Отключаем прокрутку */
+    font-family: Arial, Helvetica, sans-serif;
+    box-sizing: border-box;
+}
+
+.wrapper {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2.5rem;
+    padding: 1rem;
+    background-color: #dcd4d4;
+}
+
+.menu-item {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 2.5rem;
+    text-align: center;
+    padding: 10px 0;
+    display: block;
+    font-weight: 600;
+    height: 50px;
+    background-color: #2d2a2a;
+    border: 6px solid #03c8f4;
+}
+
+.menu-item.active {
+    background-color: #03c8f4;
+    color: #000000;
+}
+
+.menu-item:hover {    
+    background-color: #000000;
+}
+
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 2.5rem;
+    padding: 1rem;
+    box-sizing: border-box;
+    background-color: #f1f1f1;
+    overflow-y: auto;
+    flex-grow: 1;
+    height: calc(100vh - 100px); /* Adjust based on your nav height */
+}
+
+.button {
+    background-color: #dcd4d4;
+    color: #000000;
+    border: 6px solid #000000;
+    font-size: 2rem; /* Slightly reduced for longer text */
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+    height: 100%;
+    word-wrap: break-word;
+}
+
+.button:hover {
+    background-color: #03c8f4;
+    transition: all 0.3s ease-in-out;
+}
+
+.button:focus {
+    outline: none;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.modal-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}

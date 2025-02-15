@@ -1,9 +1,37 @@
-// Получаем ссылки на ключевые элементы DOM
-const start = document.querySelector('.start') // Кнопка начала работы
-const startWrapper = document.querySelector('.start-wrapper') // Обертка стартового экрана
-
+// Получаем ссылки на элементы DOM
+const start = document.querySelector('.start')
+const startWrapper = document.querySelector('.start-wrapper')
 // Глобальная переменная для хранения handle корневой директории
 let globalDirHandle = null
+
+/**
+ * Функция для извлечения номера и имени из названия папки
+ * @param {string} folderName - Название папки
+ * @returns {Object} Объект с номером и именем
+ */
+function parseFolderName(folderName) {
+    // Ищем позицию нижнего подчеркивания
+    const underscoreIndex = folderName.indexOf('_')
+    if (underscoreIndex !== -1) {
+        // Извлекаем часть до подчеркивания (номер)
+        const numberPart = folderName.substring(0, underscoreIndex)
+        // Извлекаем часть после подчеркивания (имя)
+        const namePart = folderName.substring(underscoreIndex + 1)
+        
+        // Проверяем, является ли часть до подчеркивания числом
+        if (/^\d+$/.test(numberPart)) {
+            return {
+                number: parseInt(numberPart),
+                name: namePart
+            }
+        }
+    }
+    // Если нет подчеркивания или номера, возвращаем большое число для сортировки в конце
+    return {
+        number: 9999,
+        name: folderName
+    }
+}
 
 /**
  * Функция сканирования директории и создания структуры файловой системы
@@ -13,78 +41,79 @@ async function scanDirectory() {
     try {
         // Открываем диалог выбора директории
         const dirHandle = await window.showDirectoryPicker()
-        globalDirHandle = dirHandle // Сохраняем handle директории глобально
+        globalDirHandle = dirHandle
         
         // Создаем объект для хранения структуры файловой системы
         const fileSystem = {}
-
-        // Перебираем все элементы в выбранной директории
+        
+        // Собираем и сортируем папки
+        const folders = []
         for await (const entry of dirHandle.values()) {
-            // Если текущий элемент является директорией
             if (entry.kind === 'directory') {
-                const folderName = entry.name // Получаем имя папки
-                fileSystem[folderName] = [] // Создаем массив для файлов этой папки
-                
-                // Получаем handle для текущей поддиректории
-                const folderHandle = await dirHandle.getDirectoryHandle(folderName)
-                
-                // Перебираем все файлы в поддиректории
-                for await (const file of folderHandle.values()) {
-                    // Проверяем, является ли файл изображением
-                    if (file.kind === 'file' && file.name.match(/\.(jpg|jpeg|png)$/i)) {
-                        // Ищем символ подчеркивания в имени файла
-                        const underscoreIndex = file.name.indexOf('_')
+                // Извлекаем номер и имя из названия папки
+                const { number, name } = parseFolderName(entry.name)
+                folders.push({
+                    originalName: entry.name,
+                    number: number,
+                    displayName: name,
+                    handle: entry
+                })
+            }
+        }
+        
+        // Сортируем папки по номеру
+        folders.sort((a, b) => a.number - b.number)
+        
+        // Обрабатываем отсортированные папки
+        for (const folder of folders) {
+            fileSystem[folder.originalName] = []
+            const folderHandle = await dirHandle.getDirectoryHandle(folder.originalName)
+            
+            // Перебираем файлы в папке
+            for await (const file of folderHandle.values()) {
+                // Проверяем, является ли файл изображением
+                if (file.kind === 'file' && file.name.match(/\.(jpg|jpeg|png)$/i)) {
+                    const underscoreIndex = file.name.indexOf('_')
+                    
+                    if (underscoreIndex !== -1) {
+                        // Извлекаем номер и имя из названия файла
+                        const numberPart = file.name.substring(0, underscoreIndex)
+                        const namePart = file.name.substring(underscoreIndex + 1).replace(/\.(jpg|jpeg|png)$/i, '')
                         
-                        if (underscoreIndex !== -1) {
-                            // Извлекаем часть с номером (до подчеркивания)
-                            const numberPart = file.name.substring(0, underscoreIndex)
-                            // Извлекаем имя файла (после подчеркивания, без расширения)
-                            const namePart = file.name.substring(underscoreIndex + 1).replace(/\.(jpg|jpeg|png)$/i, '')
-                            
-                            // Проверяем, что часть до подчеркивания является числом
-                            if (/^\d+$/.test(numberPart)) {
-                                // Добавляем информацию о файле в массив
-                                fileSystem[folderName].push({
-                                    number: parseInt(numberPart), // Номер для сортировки
-                                    name: namePart, // Имя для отображения
-                                    fullName: file.name, // Полное имя файла
-                                    handle: file // Handle файла для последующей загрузки
-                                })
-                            } else {
-                                // Если часть до подчеркивания не является числом
-                                fileSystem[folderName].push({
-                                    number: 9999, // Высокий номер для размещения в конце списка
-                                    name: file.name.replace(/\.[^/.]+$/, ''),
-                                    fullName: file.name,
-                                    handle: file
-                                })
-                            }
-                        } else {
-                            // Если в имени файла нет подчеркивания
-                            fileSystem[folderName].push({
-                                number: 9999,
-                                name: file.name.replace(/\.[^/.]+$/, ''),
+                        if (/^\d+$/.test(numberPart)) {
+                            fileSystem[folder.originalName].push({
+                                number: parseInt(numberPart),
+                                name: namePart,
                                 fullName: file.name,
                                 handle: file
                             })
                         }
+                    } else {
+                        // Если нет подчеркивания, добавляем файл с высоким номером
+                        fileSystem[folder.originalName].push({
+                            number: 9999,
+                            name: file.name.replace(/\.[^/.]+$/, ''),
+                            fullName: file.name,
+                            handle: file
+                        })
                     }
                 }
-                
-                // Сортируем файлы по номеру
-                fileSystem[folderName].sort((a, b) => a.number - b.number)
             }
+            
+            // Сортируем файлы по номеру
+            fileSystem[folder.originalName].sort((a, b) => a.number - b.number)
         }
+        
         return fileSystem
     } catch (error) {
-        console.error('Error scanning directory:', error)
+        console.error('Ошибка при сканировании директории:', error)
         return null
     }
 }
 
 /**
  * Функция загрузки изображения по его handle
- * @param {FileSystemFileHandle} fileHandle Handle файла
+ * @param {FileSystemFileHandle} fileHandle - Handle файла
  * @returns {string|null} URL изображения или null при ошибке
  */
 async function loadImageFile(fileHandle) {
@@ -94,19 +123,18 @@ async function loadImageFile(fileHandle) {
         // Создаем URL для изображения
         return URL.createObjectURL(file)
     } catch (error) {
-        console.error('Error loading image:', error)
+        console.error('Ошибка при загрузке изображения:', error)
         return null
     }
 }
 
 /**
  * Функция создания меню из папок
- * @param {Object} fileSystem Объект с структурой файловой системы
+ * @param {Object} fileSystem - Объект с структурой файловой системы
  */
 async function createMenu(fileSystem) {
     // Получаем элемент меню
     const menu = document.querySelector('.menu')
-    // Получаем список папок
     const folders = Object.keys(fileSystem)
     
     // Очищаем меню
@@ -119,13 +147,17 @@ async function createMenu(fileSystem) {
         menuItem.className = 'menu-item'
         // Делаем первый пункт активным
         if (index === 0) menuItem.classList.add('active')
-        menuItem.textContent = folder
+        
+        // Отображаем имя папки без номера
+        const { name } = parseFolderName(folder)
+        menuItem.textContent = name
+        // Сохраняем оригинальное имя папки в атрибуте
+        menuItem.setAttribute('data-folder', folder)
         
         // Добавляем обработчик клика
         menuItem.addEventListener('click', (e) => {
             e.preventDefault()
-            const section = e.target.textContent
-            // Обновляем контейнер при клике
+            const section = e.target.getAttribute('data-folder')
             updateContainer(section, fileSystem)
             
             // Обновляем активный пункт меню
@@ -146,7 +178,7 @@ async function createMenu(fileSystem) {
 
 /**
  * Функция создания кнопки для изображения
- * @param {Object} imageData Данные изображения
+ * @param {Object} imageData - Данные изображения
  * @returns {HTMLButtonElement} Созданная кнопка
  */
 function createButton(imageData) {
@@ -159,8 +191,8 @@ function createButton(imageData) {
 
 /**
  * Функция обновления контейнера с изображениями
- * @param {string} section Название текущей папки
- * @param {Object} fileSystem Объект с структурой файловой системы
+ * @param {string} section - Название текущей папки
+ * @param {Object} fileSystem - Объект с структурой файловой системы
  */
 function updateContainer(section, fileSystem) {
     // Получаем контейнер

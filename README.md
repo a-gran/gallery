@@ -69,29 +69,26 @@ https://a-gran.github.io/gallery/
 ## Пример структуры папки с изображениями:
 ```
 img
-├─ folder1
-│  ├─ image1.jpg
-│  ├─ image2.jpg
-
-## Пример структуры папки с изображениями:
-```
-img
-├─ folder1
-│  ├─ image1.jpg
-│  ├─ image2.jpg
-│  └─ image3.jpg
-├─ folder2
-│  ├─ image4.jpg
-│  ├─ image5.jpg
-│  └─ image6.jpg
-├─ folder3
-│  ├─ image7.jpg
-│  ├─ image8.jpg
-│  └─ image9.jpg
-├─ folder4
-│  ├─ image10.jpg
-│  ├─ image11.jpg
-│  └─ image12.jpg
+├─ 1_folder
+│  ├─ 1_image.jpg
+│  ├─ 2_image.jpg
+│  └─ 3_image.jpg
+|  ...
+├─ 2_folder
+│  ├─ 1_image.jpg
+│  ├─ 2_image.jpg
+│  └─ 3_image.jpg
+|  ...
+├─ 3_folder
+│  ├─ 1_image.jpg
+│  ├─ 2_image.jpg
+│  └─ 3_image.jpg
+|  ...
+├─ 4_folder
+│  ├─ 1_image.jpg
+│  ├─ 2_image.jpg
+│  └─ 3_image.jpg
+|  ...
 ```
 
 В верхней части интерфейса есть меню с названиями разделов. Названия автоматически подтягиваются из названий подпапок с изображениями.

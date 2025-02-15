@@ -1,33 +1,61 @@
 const start = document.querySelector('.start')
 const startWrapper = document.querySelector('.start-wrapper')
 
-let globalDirHandle = null // Сохраняем handle корневой директории
+let globalDirHandle = null
 
-// Функция для получения доступа к папке и сканирования её содержимого
 async function scanDirectory() {
     try {
-        // Запрашиваем у пользователя доступ к папке
         const dirHandle = await window.showDirectoryPicker()
-        globalDirHandle = dirHandle // Сохраняем handle
+        globalDirHandle = dirHandle
         const fileSystem = {}
 
-        // Сканируем содержимое папки
         for await (const entry of dirHandle.values()) {
             if (entry.kind === 'directory') {
                 const folderName = entry.name
                 fileSystem[folderName] = []
                 
-                // Сканируем содержимое подпапки
                 const folderHandle = await dirHandle.getDirectoryHandle(folderName)
                 for await (const file of folderHandle.values()) {
                     if (file.kind === 'file' && file.name.match(/\.(jpg|jpeg|png)$/i)) {
-                        fileSystem[folderName].push({
-                            name: file.name.replace(/\.[^/.]+$/, ''),
-                            fullName: file.name,
-                            handle: file // Сохраняем handle файла
-                        })
+                        // Проверяем наличие подчёркивания в имени файла
+                        const underscoreIndex = file.name.indexOf('_')
+                        if (underscoreIndex !== -1) {
+                            // Извлекаем номер до подчёркивания
+                            const numberPart = file.name.substring(0, underscoreIndex)
+                            // Извлекаем имя после подчёркивания и до расширения
+                            const namePart = file.name.substring(underscoreIndex + 1).replace(/\.(jpg|jpeg|png)$/i, '')
+                            
+                            // Проверяем, что numberPart содержит только цифры
+                            if (/^\d+$/.test(numberPart)) {
+                                fileSystem[folderName].push({
+                                    number: parseInt(numberPart),
+                                    name: namePart,
+                                    fullName: file.name,
+                                    handle: file
+                                })
+                            } else {
+                                // Если numberPart не является числом, добавляем файл в конец
+                                fileSystem[folderName].push({
+                                    number: 9999,
+                                    name: file.name.replace(/\.[^/.]+$/, ''),
+                                    fullName: file.name,
+                                    handle: file
+                                })
+                            }
+                        } else {
+                            // Если нет подчёркивания, добавляем файл в конец
+                            fileSystem[folderName].push({
+                                number: 9999,
+                                name: file.name.replace(/\.[^/.]+$/, ''),
+                                fullName: file.name,
+                                handle: file
+                            })
+                        }
                     }
                 }
+                
+                // Сортируем файлы по номеру
+                fileSystem[folderName].sort((a, b) => a.number - b.number)
             }
         }
         return fileSystem
@@ -37,7 +65,6 @@ async function scanDirectory() {
     }
 }
 
-// Функция для загрузки изображения по его handle
 async function loadImageFile(fileHandle) {
     try {
         const file = await fileHandle.getFile()
@@ -48,7 +75,6 @@ async function loadImageFile(fileHandle) {
     }
 }
 
-// Функция создания меню
 async function createMenu(fileSystem) {
     const menu = document.querySelector('.menu')
     const folders = Object.keys(fileSystem)
@@ -76,13 +102,11 @@ async function createMenu(fileSystem) {
         menu.appendChild(menuItem)
     })
     
-    // Инициализируем первый раздел
     if (folders.length > 0) {
         updateContainer(folders[0], fileSystem)
     }
 }
 
-// Функция создания кнопки
 function createButton(imageData) {
     const button = document.createElement('button')
     button.className = 'button'
@@ -91,7 +115,6 @@ function createButton(imageData) {
     return button
 }
 
-// Функция обновления содержимого контейнера
 function updateContainer(section, fileSystem) {
     const container = document.querySelector('.container')
     container.innerHTML = ''
@@ -112,15 +135,12 @@ function updateContainer(section, fileSystem) {
     })
 }
 
-// Настройка функционала модального окна
 const modal = document.getElementById('imageModal')
 const modalImg = document.getElementById('modalImage')
 
-// Обработчики закрытия модального окна
 modal.addEventListener('click', (e) => {
     if (e.target === modal) {
         modal.style.display = 'none'
-        // Очищаем URL при закрытии модального окна
         if (modalImg.src.startsWith('blob:')) {
             URL.revokeObjectURL(modalImg.src)
         }
@@ -130,14 +150,12 @@ modal.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         modal.style.display = 'none'
-        // Очищаем URL при закрытии модального окна
         if (modalImg.src.startsWith('blob:')) {
             URL.revokeObjectURL(modalImg.src)
         }
     }
 })
 
-// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', async () => {
     const wrapper = document.querySelector('.wrapper')
     wrapper.style.display = 'none'

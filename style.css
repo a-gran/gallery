@@ -16,23 +16,29 @@ body, html {
 
 .menu {
     display: grid;           /* Активируем grid для создания сетки элементов */
-    grid-template-columns: repeat(4, 1fr);  /* Создаем 4 колонки одинаковой ширины */
-    gap: 2.5rem;            /* Задаем расстояние между элементами сетки */
-    padding: 1rem;          /* Внутренний отступ меню от краев */
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));  /* Автоматическое размещение до 8 колонок */
+    gap: 1rem;               /* Задаем расстояние между элементами сетки */
+    padding: 1rem;           /* Внутренний отступ меню от краев */
     background-color: #dcd4d4;  /* Устанавливаем светло-серый фон */
+    max-width: 100%;         /* Максимальная ширина - вся доступная ширина */
 }
 
 .menu-item {
     color: #ffffff;         /* Белый цвет текста */
     text-decoration: none;  /* Убираем подчеркивание у ссылок */
-    font-size: 2.5rem;     /* Увеличиваем размер шрифта */
-    text-align: center;    /* Центрируем текст по горизонтали */
-    padding: 10px 0;       /* Добавляем внутренние отступы сверху и снизу */
-    display: block;        /* Делаем элемент блочным */
-    font-weight: 600;      /* Устанавливаем жирность шрифта */
-    height: 50px;          /* Фиксированная высота элемента */
+    font-size: 1.5rem;        /* Уменьшаем размер шрифта для лучшего размещения */
+    text-align: center;     /* Центрируем текст по горизонтали */
+    padding: 0;             /* Убираем отступы для правильного центрирования */
+    display: flex;          /* Используем flex для центрирования */
+    justify-content: center; /* Центрируем по горизонтали */
+    align-items: center;    /* Центрируем по вертикали */
+    font-weight: 600;       /* Устанавливаем жирность шрифта */
+    height: 50px;           /* Фиксированная высота элемента */
     background-color: #2d2a2a;  /* Тёмно-серый фон */
     border: 6px solid #03c8f4;  /* Добавляем голубую рамку */
+    overflow: hidden;       /* Скрываем вылезающий текст */
+    text-overflow: ellipsis; /* Добавляем многоточие для длинного текста */
+    white-space: nowrap;    /* Запрещаем перенос текста */
 }
 
 .menu-item.active {
@@ -126,24 +132,4 @@ body, html {
     width: 100%;               /* Ширина на весь контейнер */
     height: 100%;              /* Высота на весь контейнер */
     object-fit: contain;       /* Сохраняем пропорции изображения */
-}
-
-@media screen and (max-width: 1024px) {    /* Медиа-запрос для экранов < 1024px */
-    .container {
-        grid-template-columns: repeat(2, 1fr);  /* Изменяем сетку на 2 колонки */
-    }
-    
-    .menu {
-        grid-template-columns: repeat(2, 1fr);  /* Изменяем сетку меню на 2 колонки */
-    }
-}
-
-@media screen and (max-width: 480px) {     /* Медиа-запрос для экранов < 480px */
-    .container {
-        grid-template-columns: 1fr;         /* Изменяем сетку на 1 колонку */
-    }
-    
-    .menu {
-        grid-template-columns: 1fr;         /* Изменяем сетку меню на 1 колонку */
-    }
 }
